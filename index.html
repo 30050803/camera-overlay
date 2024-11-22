@@ -109,6 +109,33 @@
             text-align: center;
             border-radius: 5px;
         }
+        #level-indicator {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+        }
+        #dashes {
+            display: flex;
+            justify-content: center;
+            gap: 2px;
+        }
+        .dash {
+            width: 5px;
+            height: 20px;
+            background-color: gray;
+        }
+        .thick-dash {
+            width: 8px;
+            background-color: gray;
+        }
+        #angle-display {
+            margin-top: 5px;
+            font-size: 18px;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -123,6 +150,10 @@
             <div class="frame-1-1"></div>
             <div class="frame-1-1-label">1:1</div>
         </div>
+        <div id="level-indicator">
+            <div id="dashes"></div>
+            <div id="angle-display">0°</div>
+        </div>
         <button id="switch-camera-btn">Switch Camera</button>
     </div>
     <script>
@@ -131,8 +162,47 @@
         const cameraFeed = document.getElementById('camera-feed');
         const switchCameraBtn = document.getElementById('switch-camera-btn');
         const orientationWarning = document.getElementById('orientation-warning');
+        const dashesContainer = document.getElementById('dashes');
+        const angleDisplay = document.getElementById('angle-display');
 
         let currentFacingMode = 'user'; // Default to front-facing camera
+        const numDashes = 21; // Total number of dashes
+        const midpoint = Math.floor(numDashes / 2); // Center dash index
+
+        // Create dashes dynamically
+        for (let i = 0; i < numDashes; i++) {
+            const dash = document.createElement('div');
+            dash.classList.add('dash');
+            if (i === midpoint) dash.classList.add('thick-dash');
+            dashesContainer.appendChild(dash);
+        }
+
+        const dashes = document.querySelectorAll('.dash, .thick-dash');
+
+        // Update level indicator based on device orientation
+        window.addEventListener('deviceorientation', (event) => {
+            const tilt = Math.round(event.beta); // Tilt angle in degrees (beta is vertical tilt)
+            angleDisplay.textContent = `${tilt}°`;
+
+            // Reset all dashes to default color
+            dashes.forEach(dash => {
+                dash.style.backgroundColor = 'gray';
+            });
+
+            // Determine the active dash index
+            const activeIndex = midpoint + Math.round(tilt / 2);
+
+            if (activeIndex >= 0 && activeIndex < numDashes) {
+                // Change colors based on proximity to 45 degrees
+                if (Math.abs(tilt - 45) <= 5) {
+                    dashes[activeIndex].style.backgroundColor = 'green'; // Close to 45 degrees
+                } else if (Math.abs(tilt - 45) <= 10) {
+                    dashes[activeIndex].style.backgroundColor = 'orange'; // Near 45 degrees
+                } else {
+                    dashes[activeIndex].style.backgroundColor = 'white'; // Normal tilt
+                }
+            }
+        });
 
         // Check orientation
         function checkOrientation() {
