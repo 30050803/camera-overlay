@@ -16,7 +16,7 @@
             height: 100vh;
             background-color: #f0f0f0;
         }
-        #camera-btn {
+        #camera-btn, #switch-camera-btn {
             padding: 15px 30px;
             font-size: 20px;
             color: white;
@@ -24,8 +24,9 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin: 10px;
         }
-        #camera-btn:hover {
+        #camera-btn:hover, #switch-camera-btn:hover {
             background-color: #0056b3;
         }
         #camera-container {
@@ -76,11 +77,21 @@
         }
         .frame-1-1 {
             position: absolute;
-            top: 25%; /* Center the 1:1 square */
-            left: 25%;
-            width: 50%;
-            height: 50%;
-            border: 2px dotted white;
+            top: calc(50% - 25%); /* Center the 1:1 square */
+            left: calc(50% - 25%);
+            width: 50%; /* Adjust size as needed */
+            height: 50%; /* Square */
+            border: 2px dashed white;
+        }
+        .frame-1-1-label {
+            position: absolute;
+            top: calc(50% - 27%); /* Slightly above the 1:1 frame */
+            left: calc(50% - 25%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 5px;
+            font-size: 14px;
+            border-radius: 3px;
         }
         #orientation-warning {
             display: none;
@@ -107,13 +118,18 @@
             <div class="frame-5-4"></div>
             <div class="shaded-right"></div>
             <div class="frame-1-1"></div>
+            <div class="frame-1-1-label">1:1</div>
         </div>
+        <button id="switch-camera-btn">Switch Camera</button>
     </div>
     <script>
         const cameraBtn = document.getElementById('camera-btn');
         const cameraContainer = document.getElementById('camera-container');
         const cameraFeed = document.getElementById('camera-feed');
+        const switchCameraBtn = document.getElementById('switch-camera-btn');
         const orientationWarning = document.getElementById('orientation-warning');
+
+        let currentFacingMode = 'user'; // Default to front-facing camera
 
         // Check orientation
         function checkOrientation() {
@@ -126,19 +142,31 @@
 
         window.addEventListener('resize', checkOrientation);
 
-        // Camera setup
-        cameraBtn.addEventListener('click', async () => {
-            cameraContainer.style.display = 'block';
-            cameraBtn.style.display = 'none';
-            checkOrientation();
-
+        // Start the camera
+        async function startCamera(facingMode = 'user') {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: facingMode }
+                });
                 cameraFeed.srcObject = stream;
             } catch (error) {
                 alert('Unable to access the camera. Please check your permissions.');
                 console.error(error);
             }
+        }
+
+        // Camera button click
+        cameraBtn.addEventListener('click', () => {
+            cameraContainer.style.display = 'block';
+            cameraBtn.style.display = 'none';
+            checkOrientation();
+            startCamera(currentFacingMode);
+        });
+
+        // Switch camera button click
+        switchCameraBtn.addEventListener('click', () => {
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            startCamera(currentFacingMode);
         });
     </script>
 </body>
