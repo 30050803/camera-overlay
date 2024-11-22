@@ -10,10 +10,6 @@
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             background-color: #f0f0f0;
         }
         #camera-btn, #switch-camera-btn {
@@ -52,103 +48,82 @@
             height: 100%;
             pointer-events: none;
         }
-        .shaded-left,
-        .shaded-right {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-        }
-        .shaded-left {
-            left: 0;
-            width: calc((100% - 80%) / 2); /* Adjust for 5:4 */
-        }
-        .shaded-right {
-            right: 0;
-            width: calc((100% - 80%) / 2); /* Adjust for 5:4 */
-        }
-        .frame-5-4 {
-            position: absolute;
-            top: 0;
-            left: calc((100% - 80%) / 2); /* Center the 5:4 area */
-            width: 80%; /* 5:4 aspect ratio */
-            height: 100%;
-            border: 2px solid white;
-        }
         .frame-1-1 {
             position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100vh; /* Full height of the screen */
-            height: 100vh; /* Equal to the height */
-            max-width: 100%; /* Ensure it doesn’t exceed screen width */
-            border: 2px dashed white;
-        }
-        .frame-1-1-label {
-            position: absolute;
-            top: 5%; /* Slightly above the 1:1 frame */
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 2px 5px;
-            font-size: 14px;
-            border-radius: 3px;
-        }
-        #orientation-warning {
-            display: none;
-            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 20px;
-            z-index: 10;
-            text-align: center;
-            border-radius: 5px;
+            border: 2px dashed white;
+        }
+        .shaded {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+        .shaded.top, .shaded.bottom {
+            width: 100%;
+        }
+        .shaded.left, .shaded.right {
+            height: 100%;
+        }
+        .shaded.top {
+            top: 0;
+            height: calc(50% - var(--square-size) / 2);
+        }
+        .shaded.bottom {
+            bottom: 0;
+            height: calc(50% - var(--square-size) / 2);
+        }
+        .shaded.left {
+            left: 0;
+            width: calc(50% - var(--square-size) / 2);
+        }
+        .shaded.right {
+            right: 0;
+            width: calc(50% - var(--square-size) / 2);
         }
         #level-indicator {
             position: absolute;
-            bottom: 10%;
-            left: 50%;
-            transform: translateX(-50%);
+            top: 50%;
+            right: 10%;
+            transform: translateY(-50%);
+            z-index: 2;
             text-align: center;
-            z-index: 10;
         }
         #dashes {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             gap: 2px;
         }
         .dash {
-            width: 5px;
-            height: 20px;
+            width: 4px;
+            height: 10px;
             background-color: gray;
         }
-        .thick-dash {
-            width: 8px;
+        .dash.thick {
+            width: 6px;
+            height: 15px;
             background-color: gray;
         }
         #angle-display {
             margin-top: 5px;
-            font-size: 18px;
+            font-size: 16px;
             color: white;
         }
     </style>
 </head>
 <body>
     <button id="camera-btn">Camera with Overlay</button>
-    <div id="orientation-warning">Please rotate your device to landscape mode.</div>
     <div id="camera-container">
         <video id="camera-feed" autoplay playsinline></video>
         <div class="overlay">
-            <div class="shaded-left"></div>
-            <div class="frame-5-4"></div>
-            <div class="shaded-right"></div>
-            <div class="frame-1-1"></div>
-            <div class="frame-1-1-label">1:1</div>
+            <div class="frame-1-1" id="frame"></div>
+            <div class="shaded top"></div>
+            <div class="shaded bottom"></div>
+            <div class="shaded left"></div>
+            <div class="shaded right"></div>
         </div>
         <div id="level-indicator">
             <div id="dashes"></div>
@@ -161,9 +136,11 @@
         const cameraContainer = document.getElementById('camera-container');
         const cameraFeed = document.getElementById('camera-feed');
         const switchCameraBtn = document.getElementById('switch-camera-btn');
-        const orientationWarning = document.getElementById('orientation-warning');
         const dashesContainer = document.getElementById('dashes');
         const angleDisplay = document.getElementById('angle-display');
+        const frame = document.getElementById('frame');
+        const shadedAreas = document.querySelectorAll('.shaded');
+        const root = document.documentElement;
 
         let currentFacingMode = 'user'; // Default to front-facing camera
         const numDashes = 21; // Total number of dashes
@@ -173,11 +150,11 @@
         for (let i = 0; i < numDashes; i++) {
             const dash = document.createElement('div');
             dash.classList.add('dash');
-            if (i === midpoint) dash.classList.add('thick-dash');
+            if (i === midpoint) dash.classList.add('thick');
             dashesContainer.appendChild(dash);
         }
 
-        const dashes = document.querySelectorAll('.dash, .thick-dash');
+        const dashes = document.querySelectorAll('.dash');
 
         // Update level indicator based on device orientation
         window.addEventListener('deviceorientation', (event) => {
@@ -204,17 +181,6 @@
             }
         });
 
-        // Check orientation
-        function checkOrientation() {
-            if (window.innerHeight > window.innerWidth) {
-                orientationWarning.style.display = 'block';
-            } else {
-                orientationWarning.style.display = 'none';
-            }
-        }
-
-        window.addEventListener('resize', checkOrientation);
-
         // Start the camera
         async function startCamera(facingMode = 'user') {
             try {
@@ -228,11 +194,21 @@
             }
         }
 
+        // Resize the 1:1 frame dynamically
+        function resizeFrame() {
+            const size = Math.min(window.innerHeight, window.innerWidth);
+            root.style.setProperty('--square-size', `${size}px`);
+            frame.style.width = `${size}px`;
+            frame.style.height = `${size}px`;
+        }
+
+        window.addEventListener('resize', resizeFrame);
+
         // Camera button click
         cameraBtn.addEventListener('click', () => {
             cameraContainer.style.display = 'block';
             cameraBtn.style.display = 'none';
-            checkOrientation();
+            resizeFrame();
             startCamera(currentFacingMode);
         });
 
