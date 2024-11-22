@@ -12,7 +12,7 @@
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
         }
-        #camera-btn, #switch-camera-btn {
+        #camera-btn {
             padding: 15px 30px;
             font-size: 20px;
             color: white;
@@ -22,7 +22,7 @@
             cursor: pointer;
             margin: 10px;
         }
-        #camera-btn:hover, #switch-camera-btn:hover {
+        #camera-btn:hover {
             background-color: #0056b3;
         }
         #camera-container {
@@ -83,6 +83,23 @@
         .shaded.right {
             right: 0;
             width: calc(50% - var(--square-size) / 2);
+        }
+        #switch-camera-btn {
+            position: absolute;
+            left: 10%;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #switch-camera-btn:hover {
+            background-color: #0056b3;
         }
         #level-indicator {
             position: absolute;
