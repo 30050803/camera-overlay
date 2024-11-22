@@ -77,16 +77,19 @@
         }
         .frame-1-1 {
             position: absolute;
-            top: calc(50% - 25%); /* Center the 1:1 square */
-            left: calc(50% - 25%);
-            width: 50%; /* Adjust size as needed */
-            height: 50%; /* Square */
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100vh; /* Full height of the screen */
+            height: 100vh; /* Equal to the height */
+            max-width: 100%; /* Ensure it doesn’t exceed screen width */
             border: 2px dashed white;
         }
         .frame-1-1-label {
             position: absolute;
-            top: calc(50% - 27%); /* Slightly above the 1:1 frame */
-            left: calc(50% - 25%);
+            top: 5%; /* Slightly above the 1:1 frame */
+            left: 50%;
+            transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.7);
             color: white;
             padding: 2px 5px;
