@@ -51,67 +51,93 @@
             height: 100%;
             pointer-events: none;
         }
-        .grid-lines {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-        }
-        .grid-lines div {
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-        .frame-lines {
+        .shaded-left,
+        .shaded-right {
             position: absolute;
-            top: calc((100% - 56.25%) / 2); /* Center 16:9 aspect ratio */
-            width: 100%;
-            height: 56.25%;
-            border: 2px solid white;
-        }
-        .shaded {
-            position: absolute;
+            top: 0;
+            height: 100%;
             background: rgba(0, 0, 0, 0.5);
         }
-        .shaded.top {
-            top: 0;
-            height: calc((100% - 56.25%) / 2);
-            width: 100%;
+        .shaded-left {
+            left: 0;
+            width: calc((100% - 80%) / 2); /* Adjust for 5:4 */
         }
-        .shaded.bottom {
-            bottom: 0;
-            height: calc((100% - 56.25%) / 2);
-            width: 100%;
+        .shaded-right {
+            right: 0;
+            width: calc((100% - 80%) / 2); /* Adjust for 5:4 */
+        }
+        .frame-5-4 {
+            position: absolute;
+            top: 0;
+            left: calc((100% - 80%) / 2); /* Center the 5:4 area */
+            width: 80%; /* 5:4 aspect ratio */
+            height: 100%;
+            border: 2px solid white;
+        }
+        .frame-1-1 {
+            position: absolute;
+            top: 25%; /* Center the 1:1 square */
+            left: 25%;
+            width: 50%;
+            height: 50%;
+            border: 2px dotted white;
+        }
+        #orientation-warning {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            z-index: 10;
+            text-align: center;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
     <button id="camera-btn">Camera with Overlay</button>
+    <div id="orientation-warning">Please rotate your device to landscape mode.</div>
     <div id="camera-container">
         <video id="camera-feed" autoplay playsinline></video>
         <div class="overlay">
-            <div class="shaded top"></div>
-            <div class="grid-lines">
-                <div></div><div></div><div></div><div></div><div></div>
-                <div></div><div></div><div></div><div></div><div></div>
-                <div></div><div></div><div></div><div></div><div></div>
-                <div></div><div></div><div></div><div></div><div></div>
-            </div>
-            <div class="frame-lines"></div>
-            <div class="shaded bottom"></div>
+            <div class="shaded-left"></div>
+            <div class="frame-5-4"></div>
+            <div class="shaded-right"></div>
+            <div class="frame-1-1"></div>
         </div>
     </div>
     <script>
         const cameraBtn = document.getElementById('camera-btn');
         const cameraContainer = document.getElementById('camera-container');
         const cameraFeed = document.getElementById('camera-feed');
+        const orientationWarning = document.getElementById('orientation-warning');
 
+        // Check orientation
+        function checkOrientation() {
+            if (window.innerHeight > window.innerWidth) {
+                orientationWarning.style.display = 'block';
+            } else {
+                orientationWarning.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('resize', checkOrientation);
+
+        // Camera setup
         cameraBtn.addEventListener('click', async () => {
             cameraContainer.style.display = 'block';
             cameraBtn.style.display = 'none';
+            checkOrientation();
 
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 cameraFeed.srcObject = stream;
             } catch (error) {
                 alert('Unable to access the camera. Please check your permissions.');
+                console.error(error);
             }
         });
     </script>
